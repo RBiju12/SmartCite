@@ -9,7 +9,7 @@ interface NextRequest extends NextApiRequest {
     }
 }
 
-export async function POST(req: NextRequest, res: NextApiResponse)
+export async function GET(req: NextRequest, res: NextApiResponse)
 {
     try
     {
@@ -17,18 +17,26 @@ export async function POST(req: NextRequest, res: NextApiResponse)
         {
             const {data, words_limit} = req.body
 
-            const generator = await pipeline('summarization', 'Xenova/distilbart-cnn-6-6')
+            if (data && words_limit)
+            {
+                const generator = await pipeline('summarization', 'Xenova/distilbart-cnn-6-6')
 
-            const output: any = await generator(data, {
-            max_new_tokens: words_limit
-        })
+                const output: any = await generator(data, {
+                max_new_tokens: words_limit
+            })
 
-        return output.summary_text
+                res.status(200).json({text: output?.summary_text})
+            }
+
+            else
+            {
+                res.status(400).json({text: 'Invalid input'})
+            }
 
         }
         else
         {
-            return 'Missing Parameters'
+            res.status(400).json({text: 'Invalid arguments'})
         }
     }
     catch(err: any) 
