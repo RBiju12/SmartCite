@@ -1,11 +1,27 @@
 import React from 'react'
+import Link from 'next/link'
 
-const Navbar = () => {
+export default function Navbar()
+{
   return (
     <div>
-      
+      <li> 
+        <Link href="/">
+          Smart Cite
+        </Link>
+      </li>
+
+      <li>
+        <Link href="/pages/generator">
+          Generator
+        </Link>
+      </li>
+
+      <li>
+        <Link href="/user/dashboard">
+          Dashboard
+        </Link>
+      </li>
     </div>
   )
 }
-
-export default Navbar
