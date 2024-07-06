@@ -16,7 +16,6 @@ export async function GET(req: NextApiRequest, res: NextApiResponse)
 
             if (topic)
             {
-
                 let searchQuery: any = getJson({
                     engine: 'google_scholar',
                     q: topic,

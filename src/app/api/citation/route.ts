@@ -62,47 +62,57 @@ async function getCitation(link: string): Promise<WebCitation | null>
         const page: any = await browser.newPage()
         await page.goto(link) 
 
-        let siteInfo: WebCitation = {
-            title: null,
-            author: null,
-            publisher: null,
-            time: null,
-            review: null,
-            pageNumber: null
-        }
-
         const header: any = await page.locator('css=head')
         
         if (header)
         {
-            const title: any = await header.locator('title')
-            const metaTags: any = await header.locator('meta[name]').findAll()
-            const metaPropTags: any = await header.locator('meta[property]').findAll()
+            let siteInfo: WebCitation = {
+                title: null,
+                author: null,
+                publisher: null,
+                time: null,
+                review: null,
+                pageNumber: null
+            }
+
+            let titles: any = await header.locator('title')
+            let metaTag: any = await header.locator('meta[name]').findAll()
+            let metaPropTag: any = await header.locator('meta[property]').findAll()
+
+            const [title, metaTags, metaPropTags] = await Promise.all([titles, metaTag, metaPropTag])
+
             siteInfo.title = title
+            let objValues = Object.entries(siteInfo).filter(([key, value]) => value !== null)
 
             if (metaTags)
             {
                 for (let meta of metaTags)
                 {
+                    if (objValues.length === 5)
+                    {
+                        break
+                    }
+
                     const name: any = await meta.getAttribute('name')
+
                     if (name.includes("author"))
                     {
-                        siteInfo.author = await meta.getAttribute('content')
+                        siteInfo.author = meta.getAttribute('content')
                     }
 
-                    if (name.includes('publisher'))
+                    else if (name.includes('publisher'))
                     {
-                        siteInfo.publisher = await meta.generateAttribute('content')
+                        siteInfo.publisher = meta.getAttribute('content')
                     }
 
-                    if (name.includes("keywords"))
+                    else if (name.includes("keywords"))
                     {
-                        siteInfo.review = await meta.getAttribute('content')
+                        siteInfo.review = meta.getAttribute('content')
                     }
 
-                    if (name.includes("pageNumber"))
+                    else if (name.includes("pageNumber"))
                     {
-                        siteInfo.pageNumber = await meta.getAttribute('content')
+                        siteInfo.pageNumber = meta.getAttribute('content')
                     }
                 }
             }
@@ -111,20 +121,26 @@ async function getCitation(link: string): Promise<WebCitation | null>
             {
                 for (let prop of metaPropTags)
                 {
+                    if (objValues.length === 6)
+                    {
+                        break
+                    }
+
                     const time = await prop.getAttribute('property')
+
                     if (time.includes("modified_time") || time.includes('updated_time')) 
                     {
-                        siteInfo.time = await prop.getAttribute('content').split('T')[0]
+                        siteInfo.time = prop.getAttribute('content').split('T')[0]
                     }
 
-                    if (!siteInfo.author && time.incudes("author"))
+                    else if (!siteInfo.author && time.incudes("author"))
                     {
-                        siteInfo.author = await prop.getAttribute('content')
+                        siteInfo.author = prop.getAttribute('content')
                     }
 
-                    if (!siteInfo.publisher && time.includes('publisher'))
+                    else if (!siteInfo.publisher && time.includes('publisher'))
                     {
-                        siteInfo.publisher = await prop.getAttribute('content')
+                        siteInfo.publisher = prop.getAttribute('content')
                     }
 
                 }
