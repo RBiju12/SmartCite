@@ -4,7 +4,9 @@ import {pipeline} from '@xenova/transformers'
 
 interface NextRequest extends NextApiRequest {
     body: {
-        data: string,
+        data: {
+            text: string
+        }
         words_limit: number
     }
 }
@@ -20,8 +22,7 @@ export async function GET(req: NextRequest, res: NextApiResponse)
             if (data && words_limit)
             {
                 const generator = await pipeline('summarization', 'Xenova/distilbart-cnn-6-6')
-
-                const output: any = await generator(data, {
+                const output: any = await generator(data?.text, {
                 max_new_tokens: words_limit
             })
 

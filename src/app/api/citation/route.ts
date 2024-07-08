@@ -86,44 +86,45 @@ async function getCitation(link: string): Promise<WebCitation | null>
 
             if (metaTags)
             {
-                for (let meta of metaTags)
+                metaTags.map(async (meta: any) => 
                 {
                     if (objValues.length === 5)
                     {
-                        break
+                        return;
                     }
 
                     const name: any = await meta.getAttribute('name')
+                    const content: any = await meta.getAttribute('content') 
 
                     if (name.includes("author"))
                     {
-                        siteInfo.author = meta.getAttribute('content')
+                        siteInfo.author = content
                     }
 
                     else if (name.includes('publisher'))
                     {
-                        siteInfo.publisher = meta.getAttribute('content')
+                        siteInfo.publisher = content
                     }
 
                     else if (name.includes("keywords"))
                     {
-                        siteInfo.review = meta.getAttribute('content')
+                        siteInfo.review = content
                     }
 
                     else if (name.includes("pageNumber"))
                     {
-                        siteInfo.pageNumber = meta.getAttribute('content')
+                        siteInfo.pageNumber = content
                     }
                 }
-            }
+            )}
 
             if (metaPropTags)
             {
-                for (let prop of metaPropTags)
+                metaPropTags.map(async (prop: any) => 
                 {
                     if (objValues.length === 6)
                     {
-                        break
+                        return;
                     }
 
                     const time = await prop.getAttribute('property')
@@ -131,6 +132,11 @@ async function getCitation(link: string): Promise<WebCitation | null>
                     if (time.includes("modified_time") || time.includes('updated_time')) 
                     {
                         siteInfo.time = prop.getAttribute('content').split('T')[0]
+                    }
+
+                    else if (!siteInfo.title && time.includes("title"))
+                    {
+                        siteInfo.title = prop.getAttribute('content')
                     }
 
                     else if (!siteInfo.author && time.incudes("author"))
@@ -144,7 +150,7 @@ async function getCitation(link: string): Promise<WebCitation | null>
                     }
 
                 }
-            }
+            )}
 
             await browser.close()
             return siteInfo
