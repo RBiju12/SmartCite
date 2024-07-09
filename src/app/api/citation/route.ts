@@ -23,7 +23,11 @@ enum CitationStyle {
     CHICAGO = 'CHICAGO'
 }
 
-export async function GET(req: NextRequest, res: NextApiResponse)
+type Response = {
+    message: string
+}
+
+export async function GET(req: NextRequest, res: NextApiResponse): Promise<any>
 {
     try
     {
@@ -34,17 +38,17 @@ export async function GET(req: NextRequest, res: NextApiResponse)
             if (link && citation_style)
             {
                 const data: any = await getCitation(link)
-                res.status(200).json({
+                return res.status(200).json({
                     citation: generateCitation(link, data, citation_style)
                 })
                 
             }
-            res.status(400).json({
+            return res.status(400).json({
                 citation: 'Error could not parse following cite'
             })
 
         }
-        res.status(400).json({
+        return res.status(400).json({
             citation: 'Invalid request'
         })
     }
@@ -166,24 +170,24 @@ async function getCitation(link: string): Promise<WebCitation | null>
     }
 }
 
-function generateCitation(url: string, obj: any, citation_style: string): string | null
+function generateCitation(url: string, obj: any, citation_style: string): string
 {
     switch (citation_style)
     {
         case CitationStyle.MLA:
-            return `${obj?.author.split(' ').reverse().join(',') ? obj.author : null}. "${obj?.title ? obj.title : null}." 
-                ${obj?.publisher ? obj.publisher : null}, ${obj.time.slice(0, 4) ? obj.time : null}, ${url}.`
+            return `${obj?.author.split(' ').reverse().join(',') ? obj.author : "Not Found"}. "${obj?.title ? obj.title : "Not Found"}." 
+                ${obj?.publisher ? obj.publisher : "Not Found"}, ${obj.time.slice(0, 4) ? obj.time : "Not Found"}, ${url}.`
         
         case CitationStyle.APA:
-            return `(${obj?.time.slice(0, 4) ? obj.time : null}). ${obj?.review ? obj.review : null}. 
-                ${obj?.title ? obj.title : null}. ${obj?.pageNumber ? obj.pageNumber : null}. ${url}.`
+            return `(${obj?.time.slice(0, 4) ? obj.time : "Not Found"}). ${obj?.review ? obj.review : "Not Found"}. 
+                ${obj?.title ? obj.title : "Not Found"}. ${obj?.pageNumber ? obj.pageNumber : "Not Found"}. ${url}.`
 
         case CitationStyle.CHICAGO:
-            return `${obj?.author ? obj.author : null}. ${obj?.title ? obj.title : null}. 
-                ${obj?.publisher ? obj.publisher : null}. ${url}.`
+            return `${obj?.author ? obj.author : "Not Found"}. ${obj?.title ? obj.title : "Not Found"}. 
+                ${obj?.publisher ? obj.publisher : "Not Found"}. ${url}.`
 
         default:
-            return `${obj?.author.split(' ').reverse().join(',') ? obj.author : null}. "${obj?.title ? obj.title : null}." 
-                ${obj?.publisher ? obj.publisher : null}, ${obj.time.slice(0, 4) ? obj.time : null}, ${url}.`
+            return `${obj?.author.split(' ').reverse().join(',') ? obj.author : "Not Found"}. "${obj?.title ? obj.title : "Not Found"}." 
+                ${obj?.publisher ? obj.publisher : "Not Found"}, ${obj.time.slice(0, 4) ? obj.time : "Not Found"}, ${url}.`
     }
 }

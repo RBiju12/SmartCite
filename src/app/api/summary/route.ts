@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse} from "next";
 import {pipeline} from '@xenova/transformers'
 
 
@@ -11,7 +11,7 @@ interface NextRequest extends NextApiRequest {
     }
 }
 
-export async function GET(req: NextRequest, res: NextApiResponse)
+export async function GET(req: NextRequest, res: NextApiResponse): Promise<any>
 {
     try
     {
@@ -26,18 +26,18 @@ export async function GET(req: NextRequest, res: NextApiResponse)
                 max_new_tokens: words_limit
             })
 
-                res.status(200).json({text: output?.summary_text})
+                return res.status(200).json({text: output?.summary_text})
             }
 
             else
             {
-                res.status(400).json({text: 'Invalid input'})
+               return res.status(400).json({text: 'Invalid input'})
             }
 
         }
         else
         {
-            res.status(400).json({text: 'Invalid arguments'})
+            return res.status(400).json({text: 'Invalid arguments'})
         }
     }
     catch(err: any) 

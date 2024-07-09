@@ -13,7 +13,7 @@ interface UserInfo extends NextApiRequest {
 }
 
 
-export default async function POST(req: UserInfo, res: NextApiResponse) 
+export default async function POST(req: UserInfo, res: NextApiResponse): Promise<any>
 {
     if (req.body && Object.entries(req.body).length === 4)
     {
@@ -27,8 +27,11 @@ export default async function POST(req: UserInfo, res: NextApiResponse)
             await client.connect()
             const saltRounds: number = 10
 
-            const db = client.db('SmartCite')
-            const collection = db.collection('users')
+            const dbName: any = process.env.MONGODB_NAME
+            const dbCollectionName: any = process.env.MONGODB_COLLECT
+
+            const db = client.db(dbName)
+            const collection = db.collection(dbCollectionName)
             const hashedPass: string | void = bcrypt.hash(password, saltRounds, (err, hash) => {
                 if (err)
                 {
@@ -42,25 +45,28 @@ export default async function POST(req: UserInfo, res: NextApiResponse)
             })
 
             const result = collection.find({password: hashedPass})
-            if (result !== null)
+            if (result)
             {
-                res.status(400).json({
+                return res.status(400).json({
                     message: 'User already Exists'
                 })
-                return;
             }
 
             else
             {
-
                 collection.insertOne({id: id, username: username, email: email, password: hashedPass})
                 let secretKey: any = process.env.SECRET_KEY
 
-                const token = jwt.sign({time: Date(), id: id}, secretKey) 
+                const jwtExpirationTime = process.env.JWT_EXPIRATION
 
-                res.status(200).json({
+                const token = jwt.sign({time: Date(), id: id}, secretKey, {
+                    expiresIn: jwtExpirationTime
+                }) 
+
+                res.setHeader('SET-Cookie', `accessToken=${token}; HttpOnly; Secure; SameSite=Strict`)
+
+                return res.status(200).json({
                     message: "User was successfully created",
-                    token: token
                 })
             }
 
@@ -68,7 +74,7 @@ export default async function POST(req: UserInfo, res: NextApiResponse)
 
         catch (e: any)
         {
-            res.status(500).json({data: 'Something went Wrong!'})
+            return res.status(500).json({data: 'Something went Wrong!'})
         }
 
         finally
@@ -79,7 +85,7 @@ export default async function POST(req: UserInfo, res: NextApiResponse)
     }
     else
     {
-        res.status(400).json({
+        return res.status(400).json({
             message: 'Bad Request Sent'
         })
     }

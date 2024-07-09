@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import {getJson} from 'serpapi'
 
 
-export async function GET(req: NextApiRequest, res: NextApiResponse)
+export async function GET(req: NextApiRequest, res: NextApiResponse): Promise<any>
 {
     try
     {
