@@ -1,11 +1,32 @@
 import React from 'react'
+import Link from 'next/link'
 
-const Slider = () => {
+type UserName = {
+  username: string
+}
+
+export default function Slider({username}: UserName)
+{
   return (
-    <div>
-      
-    </div>
+      <>
+      <li> 
+      <Link href="/">
+        Smart Cite
+      </Link>
+    </li>
+
+    <li>
+      <Link href="/pages/generator">
+        Generator
+      </Link>
+    </li>
+
+    <li>
+      <Link href={`/${username}/dashboard`}>
+        My Dashboard
+      </Link>
+    </li> 
+    </>
   )
 }
 
-export default Slider
