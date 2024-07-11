@@ -83,14 +83,17 @@ async function getCitation(link: string): Promise<WebCitation | null>
             let metaTag: any = await header.locator('meta[name]').findAll()
             let metaPropTag: any = await header.locator('meta[property]').findAll()
 
-            const [title, metaTags, metaPropTags] = await Promise.all([titles, metaTag, metaPropTag])
+            const [title, metaTags, metaPropTags] = await Promise.allSettled([titles, metaTag, metaPropTag])
 
-            siteInfo.title = title
+            if (title.status === 'fulfilled')
+            {
+                siteInfo.title = title.value
+            }
             let objValues = Object.entries(siteInfo).filter(([key, value]) => value !== null)
 
-            if (metaTags)
+            if (metaTags.status === 'fulfilled')
             {
-                metaTags.map(async (meta: any) => 
+                metaTags.value.map(async (meta: any) => 
                 {
                     if (objValues.length === 5)
                     {
@@ -122,9 +125,9 @@ async function getCitation(link: string): Promise<WebCitation | null>
                 }
             )}
 
-            if (metaPropTags)
+            if (metaPropTags.status === 'fulfilled')
             {
-                metaPropTags.map(async (prop: any) => 
+                metaPropTags.value.map(async (prop: any) => 
                 {
                     if (objValues.length === 6)
                     {

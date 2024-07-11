@@ -44,7 +44,7 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
                 }
             })
 
-            const result = collection.find({password: hashedPass})
+            const result = collection.find({username: username})
             if (result)
             {
                 return res.status(400).json({
@@ -54,19 +54,28 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
 
             else
             {
-                collection.insertOne({id: id, username: username, email: email, password: hashedPass})
-                let secretKey: any = process.env.SECRET_KEY
+                const information = {
+                    username : username,
+                    data: {
+                        id: id,
+                        email: email,
+                        password: hashedPass
+                    }
+                }
+                collection.insertOne(information)
+                const secretKey: any = process.env.SECRET_KEY
 
                 const jwtExpirationTime = process.env.JWT_EXPIRATION
 
-                const token = jwt.sign({time: Date(), id: id}, secretKey, {
+                const accessToken = jwt.sign({time: Date(), id: id}, secretKey, {
                     expiresIn: jwtExpirationTime
                 }) 
 
-                res.setHeader('SET-Cookie', `accessToken=${token}; HttpOnly; Secure; SameSite=Strict`)
+                res.setHeader('Authorization', `Bearer= ${accessToken}`)
 
                 return res.status(200).json({
                     message: "User was successfully created",
+                    username: username
                 })
             }
 
@@ -74,7 +83,7 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
 
         catch (e: any)
         {
-            return res.status(500).json({data: 'Something went Wrong!'})
+            return res.status(500).json({data: 'Something went Wrong!', username: null})
         }
 
         finally
