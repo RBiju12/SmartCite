@@ -52,14 +52,8 @@ export default async function GET(req: LogInReq, res:NextApiResponse)
                     }
                 })
 
-                const jwtExpirationTime = process.env.JWT_EXPIRATION
-                const secretKey: any = process.env.SECRET_KEY
                 const jwtRefreshToken: any = process.env.JWT_REFRESHKEY
                 const jwtRefreshExpiration: any = process.env.JWT_REFRESHEXPIRATION
-
-                const accessToken = jwt.sign({time: Date(), username: username}, secretKey, {
-                    expiresIn: jwtExpirationTime
-                })
 
                 const refreshToken = jwt.sign({time: Date(), username: username}, jwtRefreshToken, {
                     expiresIn: jwtRefreshExpiration
@@ -78,7 +72,7 @@ export default async function GET(req: LogInReq, res:NextApiResponse)
                 else
                 {
                     return res.status(400).json({
-                        sucess: 'Not Authorized'
+                        success: 'Not Authorized'
                     })
                 }
             }

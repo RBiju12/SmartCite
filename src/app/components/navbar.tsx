@@ -1,13 +1,13 @@
 import Link from 'next/link'
 
 type Props = {
-  username: string
+  username: string | null
 }
 
 export default async function Navbar({username}: Props) 
 {
   return (
-    <>
+    <ul>
       <li> 
       <Link href="/">
         Smart Cite
@@ -20,15 +20,14 @@ export default async function Navbar({username}: Props)
       </Link>
     </li>
 
-    {username ?? 
+    {username && 
     <li>
-      <Link href={`/${username}/dashboard`}>
+      <Link href={`/pages/${username}/dashboard`}>
         My Dashboard
       </Link>
-    </li> 
+    </li>    
     }
-    
-    </>
+    </ul>
       
   )
 }

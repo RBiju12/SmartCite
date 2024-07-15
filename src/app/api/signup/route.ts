@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken'
 
 interface UserInfo extends NextApiRequest {
     body: {
-        id: number,
         username: string,
         email: string,
         password: string
@@ -15,9 +14,9 @@ interface UserInfo extends NextApiRequest {
 
 export default async function POST(req: UserInfo, res: NextApiResponse): Promise<any>
 {
-    if (req.body && Object.entries(req.body).length === 4)
+    if (req.body && Object.entries(req.body).length === 3)
     {
-        const {id, username, email, password} = req.body
+        const {username, email, password} = req.body
         const mongoID: any = process.env.MONGO_URI
 
         const client = new MongoClient(mongoID)
@@ -57,7 +56,6 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
                 const information = {
                     username : username,
                     data: {
-                        id: id,
                         email: email,
                         password: hashedPass
                     }
@@ -67,14 +65,14 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
 
                 const jwtExpirationTime = process.env.JWT_EXPIRATION
 
-                const accessToken = jwt.sign({time: Date(), id: id}, secretKey, {
+                const accessToken = jwt.sign({time: Date(), username: username}, secretKey, {
                     expiresIn: jwtExpirationTime
                 }) 
 
                 res.setHeader('Authorization', `Bearer= ${accessToken}`)
 
                 return res.status(200).json({
-                    message: "User was successfully created",
+                    message: "success",
                     username: username
                 })
             }
