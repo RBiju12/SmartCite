@@ -1,5 +1,7 @@
 import React from 'react'
 import axios from 'axios'
+import {cookies} from 'next/headers'
+import GoogleAuth from './GoogleAuth'
 
 type Props = {
   title: string
@@ -44,7 +46,8 @@ const Form = ({title}: Props) => {
 
             if (res.data.message === 'success')
             {
-               window.sessionStorage.setItem("key", authToken)
+               cookies().set('username', res.data.username)
+               return 'Success ...'
             }
             else
             {
@@ -68,13 +71,14 @@ const Form = ({title}: Props) => {
             password: formData.get('password')
           }
 
-          const res = await axios.post(`http://localhost:3000/api/${title}`, {
+          const res = await axios.put(`http://localhost:3000/api/${title}`, {
             data
           })
 
-          if (res.data.success === 'Authorized')
+          if (res.data.message === 'Authorized')
           {
-            window.sessionStorage.setItem('key', res.headers.refreshToken)
+            cookies().set('username', res.data.username)
+            return "Authorized"
           }
           else
           {
@@ -100,7 +104,7 @@ const Form = ({title}: Props) => {
         <form action={authenticate}>
         {title === 'signup' ? 
         <div className='flex flex-col space-y-6'>
-          <input id="username" type='text' placeholder='Enter Username' required />
+          <input id="username" type='text' placeholder='Enter username' required />
 
           <input id="email" type='text' placeholder='Enter email address' required />
 
@@ -110,12 +114,15 @@ const Form = ({title}: Props) => {
         </div>
         :
         <div className='flex flex-col space-y-6'>
-          <input id="username" type='text' placeholder='Enter Username' required />
+          <input id="username" type='text' placeholder='Enter username' required />
 
-          <input id="password" type='text' placeholder='Enter password' required />   
+          <input id="password" type='text' placeholder='Enter password' required />
+
           <button type='submit'>Submit</button> 
         </div>}      
         </form>
+
+      <GoogleAuth />
       </main>
     </>
   )

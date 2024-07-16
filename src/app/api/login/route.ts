@@ -11,7 +11,7 @@ interface LogInReq extends NextApiRequest {
     }
 }
 
-export default async function GET(req: LogInReq, res:NextApiResponse)
+export default async function PUT(req: LogInReq, res:NextApiResponse)
 {
     try 
     {
@@ -61,18 +61,16 @@ export default async function GET(req: LogInReq, res:NextApiResponse)
 
                 if (query !== null && result)
                 {
+                    res.setHeader('Set-Cookie', `cookieToken=${refreshToken}; Path=/; HttpOnly`)
                     return res.status(200).json({
-                        headers: {
-                            refreshToken: refreshToken,
-                        },
-                        success: 'Authorized',
+                        message: 'Authorized',
                         username: username
                     })
                 }
                 else
                 {
                     return res.status(400).json({
-                        success: 'Not Authorized'
+                        message: 'Not Authorized'
                     })
                 }
             }
@@ -92,7 +90,7 @@ export default async function GET(req: LogInReq, res:NextApiResponse)
         else
         {
             return res.status(400).json({
-                success: 'Not Valid Credentials'
+                message: 'Not Valid Credentials'
             })
         }   
         

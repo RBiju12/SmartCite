@@ -69,10 +69,10 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
                     expiresIn: jwtExpirationTime
                 }) 
 
-                res.setHeader('Authorization', `Bearer= ${accessToken}`)
+                res.setHeader('Set-Cookie', `cookieToken=${accessToken}; Path=/; HttpOnly`)
 
                 return res.status(200).json({
-                    message: "success",
+                    message: "Success",
                     username: username
                 })
             }
@@ -81,7 +81,7 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
 
         catch (e: any)
         {
-            return res.status(500).json({data: 'Something went Wrong!', username: null})
+            return res.status(500).json({message: 'Error'})
         }
 
         finally

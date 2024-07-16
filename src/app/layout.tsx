@@ -1,9 +1,30 @@
+'use client'
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Navbar from "./components/Navbar";
+import {cookies} from 'next/headers'
+import {useState, useEffect} from 'react'
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
+
+const [userName, setuserName] = useState<string>('')
+
+
+useEffect(() => {
+  let checkCookie = setInterval(() => {
+     let cookieData: any = cookies().get('username')
+     
+     if (cookieData)
+     {
+       setuserName(cookieData)
+       clearInterval(checkCookie)
+     }
+
+  }, 3000)
+
+  return () => clearInterval(checkCookie)
+}, [])
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,7 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <Navbar username='joe'/>
+      {userName ? <Navbar username={userName}/> : <Navbar username={null} />}
       <body className={inter.className}>{children}</body>
     </html>
   );
