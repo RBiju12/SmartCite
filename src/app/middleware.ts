@@ -6,9 +6,9 @@ export default function middleware(request: NextRequest, response: NextResponse)
 
     const cookies: any = request.headers.get('cookie')
 
-    if (cookies)
+    if (!request.nextUrl.pathname.endsWith('/login') && !request.nextUrl.pathname.endsWith('/signup'))
     {
-        if (!request.nextUrl.pathname.endsWith('/login') && !request.nextUrl.pathname.endsWith('/signup'))
+        if (cookies)
         {
             let accessToken = cookies.cookieToken
             const accessToken1 = process.env.SECRET_KEY as string 
@@ -24,15 +24,16 @@ export default function middleware(request: NextRequest, response: NextResponse)
                 return new NextResponse('Please Login or SignUp', {status: 401})
             }
         }
+
         else
         {
-            return NextResponse.next()
+            return new NextResponse('Please Login or SignUp', {status: 401})
         }
     }
-    //work on also checking for the auth for Google in the middleware 
 
     return NextResponse.next()
-}
+
+    }
 
 export const config = {
     matcher: '/api/:path*'

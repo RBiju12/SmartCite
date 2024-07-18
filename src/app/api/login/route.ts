@@ -1,21 +1,14 @@
-import { NextApiRequest, NextApiResponse} from "next";
+import { NextRequest, NextResponse} from "next/server";
 import { MongoClient } from "mongodb";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken' 
 
 
-interface LogInReq extends NextApiRequest {
-    body: {
-        username: string,
-        password: string
-    }
-}
-
-export default async function PUT(req: LogInReq, res:NextApiResponse)
-{
-    try 
+export default async function GET(req: NextRequest): Promise<any>
+{ 
+    try
     {
-        const {username, password} = req.body
+        const {username, password} = await req.json()
         const mongoID: any = process.env.MONGO_URI
         const client = new MongoClient(mongoID)
 
@@ -61,15 +54,15 @@ export default async function PUT(req: LogInReq, res:NextApiResponse)
 
                 if (query !== null && result)
                 {
-                    res.setHeader('Set-Cookie', `cookieToken=${refreshToken}; Path=/; HttpOnly`)
-                    return res.status(200).json({
+                    NextResponse.next().headers.set('Set-Cookie', `cookieToken=${refreshToken}; Path=/; HttpOnly`)
+                    return NextResponse.json({
                         message: 'Authorized',
                         username: username
                     })
                 }
                 else
                 {
-                    return res.status(400).json({
+                    return NextResponse.json({
                         message: 'Not Authorized'
                     })
                 }
@@ -89,7 +82,7 @@ export default async function PUT(req: LogInReq, res:NextApiResponse)
 
         else
         {
-            return res.status(400).json({
+            return NextResponse.json({
                 message: 'Not Valid Credentials'
             })
         }   

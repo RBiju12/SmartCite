@@ -1,12 +1,5 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import {NextRequest, NextResponse} from 'next/server'
 import {chromium} from 'playwright'
-
-interface NextRequest extends NextApiRequest {
-    body: {
-        link: string, 
-        citation_style: string
-    }
-}
 
 interface WebCitation {
     title: string | null,
@@ -23,34 +16,28 @@ enum CitationStyle {
     CHICAGO = 'CHICAGO'
 }
 
-type Response = {
-    message: string
-}
-
-export async function GET(req: NextRequest, res: NextApiResponse): Promise<any>
+export async function GET(req: NextRequest): Promise<any>
 {
+
     try
     {
-        if (Object.keys(req.body).length > 0 && Object.keys(req.body).length === 2) 
-        {
-            const {link, citation_style} = req.body
+        const {link, citation_style} = await req.json()
 
-            if (link && citation_style)
-            {
-                const data: any = await getCitation(link)
-                return res.status(200).json({
-                    citation: generateCitation(link, data, citation_style)
-                })
+        if (link && citation_style)
+        {
+            const data: any = await getCitation(link)
+            return NextResponse.json({
+                citation: generateCitation(link, data, citation_style)
+            })
                 
-            }
-            return res.status(400).json({
+        }
+        else
+        {
+            return NextResponse.json({
                 citation: 'Error could not parse following cite'
             })
-
         }
-        return res.status(400).json({
-            citation: 'Invalid request'
-        })
+
     }
     catch (e: any)
     {

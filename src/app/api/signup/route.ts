@@ -1,25 +1,14 @@
-import { NextApiRequest, NextApiResponse} from "next";
+import { NextRequest, NextResponse} from "next/server";
 import {MongoClient} from 'mongodb'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken' 
 
-interface UserInfo extends NextApiRequest {
-    body: {
-        username: string,
-        email: string,
-        password: string
-    }
-}
 
-
-export default async function POST(req: UserInfo, res: NextApiResponse): Promise<any>
+export default async function POST(req: NextRequest): Promise<any>
 {
-    if (req.body && Object.entries(req.body).length === 3)
-    {
-        const {username, email, password} = req.body
-        const mongoID: any = process.env.MONGO_URI
-
-        const client = new MongoClient(mongoID)
+        const {username, email, password} = await req.json()
+        const mongoID: any = process.env.MONGO_URI as string
+        const client = new MongoClient(mongoID) 
 
         try
         {
@@ -46,7 +35,7 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
             const result = collection.find({username: username})
             if (result)
             {
-                return res.status(400).json({
+                return NextResponse.json({
                     message: 'User already Exists'
                 })
             }
@@ -69,9 +58,9 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
                     expiresIn: jwtExpirationTime
                 }) 
 
-                res.setHeader('Set-Cookie', `cookieToken=${accessToken}; Path=/; HttpOnly`)
+                NextResponse.next().headers.set('Set-Cookie', `cookieToken=${accessToken}; Path=/; HttpOnly`)
 
-                return res.status(200).json({
+                return NextResponse.json({
                     message: "Success",
                     username: username
                 })
@@ -81,7 +70,7 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
 
         catch (e: any)
         {
-            return res.status(500).json({message: 'Error'})
+            return NextResponse.json({message: 'Error'})
         }
 
         finally
@@ -89,12 +78,5 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
             await client.close()
         }
 
-    }
-    else
-    {
-        return res.status(400).json({
-            message: 'Bad Request Sent'
-        })
-    }
 }
     

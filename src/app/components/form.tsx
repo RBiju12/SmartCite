@@ -44,9 +44,9 @@ const Form = ({title}: Props) => {
               data
             })
 
-            if (res.data.message === 'success')
+            if (res?.data?.message === 'success')
             {
-               cookies().set('username', res.data.username)
+               cookies().set('username', res?.data?.username)
                return 'Success ...'
             }
             else
