@@ -1,19 +1,26 @@
 import {NextRequest, NextResponse} from "next/server";
-import {pipeline, env} from '@xenova/transformers'
-
-env.allowLocalModels = false;
+import {HfInference} from '@huggingface/inference'
 
 export async function GET(req: NextRequest): Promise<any>
 {
     try
     {
-        const {data, words_limit} = await req.json()
+        const {searchParams} = new URL(req?.url)
+        const data = searchParams.get('data')
+        const hfToken = process.env.HF_TOKEN as string
+        
+        const hf = new HfInference(hfToken)
 
-        if (data && words_limit)
+        const maxTokens = 200
+
+        if (data)
         {
-            const generator = await pipeline('summarization', 'Xenova/distilbart-cnn-6-6')
-            const output: any = await generator(data, {
-                max_new_tokens: words_limit
+            const output = await hf.summarization({
+                model: 'facebook/bart-large-cnn',
+                inputs: data,
+                parameters: {
+                    max_length: maxTokens
+                }
             })
 
             return NextResponse.json({text: output?.summary_text})
