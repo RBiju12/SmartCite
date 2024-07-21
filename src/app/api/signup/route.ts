@@ -2,9 +2,10 @@ import { NextRequest, NextResponse} from "next/server";
 import {MongoClient} from 'mongodb'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken' 
+import { hash } from "crypto";
 
 
-export default async function POST(req: NextRequest): Promise<any>
+export async function POST(req: NextRequest): Promise<any>
 {
         const {username, email, password} = await req.json()
         const mongoID: any = process.env.MONGO_URI as string
@@ -20,19 +21,8 @@ export default async function POST(req: NextRequest): Promise<any>
 
             const db = client.db(dbName)
             const collection = db.collection(dbCollectionName)
-            const hashedPass: string | void = bcrypt.hash(password, saltRounds, (err, hash) => {
-                if (err)
-                {
-                    return "Unhashable data"
-                }
 
-                else
-                {
-                    return hash
-                }
-            })
-
-            const result = collection.find({username: username})
+            const result = await collection.findOne({username: username})
             if (result)
             {
                 return NextResponse.json({
@@ -42,6 +32,19 @@ export default async function POST(req: NextRequest): Promise<any>
 
             else
             {
+                const generateHash: any = await new Promise((resolve, reject) => {
+                    bcrypt.hash(password, saltRounds, (err, hash) => {
+                        if (err)
+                        {
+                            reject(err)
+                        }
+
+                        resolve(hash)
+                    })
+                })
+
+                const hashedPass = await generateHash
+
                 const information = {
                     username : username,
                     data: {
@@ -49,7 +52,7 @@ export default async function POST(req: NextRequest): Promise<any>
                         password: hashedPass
                     }
                 }
-                collection.insertOne(information)
+                await collection.insertOne(information)
                 const secretKey: any = process.env.SECRET_KEY
 
                 const jwtExpirationTime = process.env.JWT_EXPIRATION
