@@ -4,13 +4,17 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken' 
 
 
-export default async function GET(req: NextRequest): Promise<any>
+export async function GET(req: NextRequest): Promise<any>
 { 
     try
     {
-        const {username, password} = await req.json()
+        const {searchParams} = new URL(req?.url)
+        const username = searchParams.get('username')
+        const password = searchParams.get('password')
+
         const mongoID: any = process.env.MONGO_URI
         const client = new MongoClient(mongoID)
+
 
         if (username && password)
         {
@@ -23,27 +27,14 @@ export default async function GET(req: NextRequest): Promise<any>
 
                 const db = client.db(dbName)
                 const collection = db.collection(dbCollectionName)
-                const saltRounds: number = 10
-                const hashedPass: any = bcrypt.hash(password, saltRounds, (err, hash) => {
-                    if (err)
-                    {
-                        return "Unhashable data"
-                    }
-    
-                    else
-                    {
-                        return hash
-                    }
-                })
 
-                const query = collection.findOne({username: username, password: hashedPass})
-                const result: any = bcrypt.compare(password, hashedPass, async(err, result) => {
-                    if (err)
-                    {
-                        await client.close()
-                        throw new Error(err.message)
-                    }
-                })
+                const query = collection.findOne({username: username})
+                const handleQuery = await query
+
+                if (handleQuery === null)
+                {
+                    return NextResponse.json({message: 'No account associated, please signup'})
+                }
 
                 const jwtRefreshToken: any = process.env.JWT_REFRESHKEY
                 const jwtRefreshExpiration: any = process.env.JWT_REFRESHEXPIRATION
@@ -52,25 +43,51 @@ export default async function GET(req: NextRequest): Promise<any>
                     expiresIn: jwtRefreshExpiration
                 })
 
-                if (query !== null && result)
+                const hashedPass = handleQuery?.data?.password
+
+                if (hashedPass)
                 {
-                    NextResponse.next().headers.set('Set-Cookie', `cookieToken=${refreshToken}; Path=/; HttpOnly`)
-                    return NextResponse.json({
-                        message: 'Authorized',
-                        username: username
+
+                    const result: any = new Promise((resolve, reject) => {
+                        bcrypt.compare(password, hashedPass, async(err, result) => {
+                            if (err)
+                            {
+                                reject(err)
+                            }
+
+                            resolve(result)
+                        })
                     })
+
+                    const getResult = await result
+                
+
+                    if (getResult)
+                    {
+                        NextResponse.next().headers.set('Set-Cookie', `cookieToken=${refreshToken}; Path=/; HttpOnly`)
+                        return NextResponse.json({
+                            message: 'Authorized',
+                            username: username
+                        })
+                    }
+                    else
+                    {
+                        return NextResponse.json({
+                            message: 'Not Authorized'
+                        })
+                    }
+
                 }
                 else
                 {
-                    return NextResponse.json({
-                        message: 'Not Authorized'
-                    })
+                    throw new Error('Password cannot be empty')
                 }
+
             }
 
             catch (e: any)
             {
-                throw new Error(e)
+                throw new Error(e?.message)
             }
 
             finally
@@ -91,7 +108,7 @@ export default async function GET(req: NextRequest): Promise<any>
     }
     catch(e: any)
     {
-        throw new Error(e)
+        throw new Error(e?.message)
     }
 
 }

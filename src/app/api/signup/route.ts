@@ -2,7 +2,6 @@ import { NextRequest, NextResponse} from "next/server";
 import {MongoClient} from 'mongodb'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken' 
-import { hash } from "crypto";
 
 
 export async function POST(req: NextRequest): Promise<any>
@@ -73,7 +72,7 @@ export async function POST(req: NextRequest): Promise<any>
 
         catch (e: any)
         {
-            return NextResponse.json({message: 'Error'})
+            throw new Error(e?.message)
         }
 
         finally

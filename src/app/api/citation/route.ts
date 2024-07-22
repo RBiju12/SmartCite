@@ -21,13 +21,15 @@ export async function GET(req: NextRequest): Promise<any>
 
     try
     {
-        const {link, citation_style} = await req.json()
+        const {searchParams} = new URL(req?.url)
+        const link = searchParams.get('link')
+        const citation_style = searchParams.get('citation-style')
 
         if (link && citation_style)
         {
             const data: any = await getCitation(link)
             return NextResponse.json({
-                citation: generateCitation(link, data, citation_style)
+                citation: `(${generateCitation(link, data, citation_style)})`
             })
                 
         }
@@ -41,7 +43,7 @@ export async function GET(req: NextRequest): Promise<any>
     }
     catch (e: any)
     {
-        throw new Error(e)
+        throw new Error(e?.message)
     }
 }
 
@@ -66,9 +68,9 @@ async function getCitation(link: string): Promise<WebCitation | null>
                 pageNumber: null
             }
 
-            let titles: any = await header.locator('title')
-            let metaTag: any = await header.locator('meta[name]').findAll()
-            let metaPropTag: any = await header.locator('meta[property]').findAll()
+            let titles: any = await page.title()
+            let metaTag: any = await header.locator('meta[name]').elementHandles()
+            let metaPropTag: any = await header.locator('meta[property]').elementHandles()
 
             const [title, metaTags, metaPropTags] = await Promise.allSettled([titles, metaTag, metaPropTag])
 
@@ -80,15 +82,17 @@ async function getCitation(link: string): Promise<WebCitation | null>
 
             if (metaTags.status === 'fulfilled')
             {
-                metaTags.value.map(async (meta: any) => 
+                for (let meta of metaTags.value)  
                 {
                     if (objValues.length === 5)
                     {
-                        return;
+                        break;
                     }
 
-                    const name: any = await meta.getAttribute('name')
-                    const content: any = await meta.getAttribute('content') 
+                    const key: any = meta as any
+
+                    const name: any = await key.getAttribute('name')
+                    const content: any = await key.getAttribute('content') 
 
                     if (name.includes("author"))
                     {
@@ -109,42 +113,53 @@ async function getCitation(link: string): Promise<WebCitation | null>
                     {
                         siteInfo.pageNumber = content
                     }
+
+                    else if (!siteInfo.title && name.includes('title'))
+                    {
+                        siteInfo.title = content
+                    }
                 }
-            )}
+            }
 
             if (metaPropTags.status === 'fulfilled')
             {
-                metaPropTags.value.map(async (prop: any) => 
+                for (let metaProp of metaPropTags.value)
                 {
                     if (objValues.length === 6)
                     {
-                        return;
+                        break;
                     }
 
-                    const time = await prop.getAttribute('property')
+                    const key: any = metaProp as any
 
-                    if (time.includes("modified_time") || time.includes('updated_time')) 
+                    let props = await key.getAttribute('property')
+                    let content = await key.getAttribute('content')
+
+
+                    if (props.includes("modified_time") || props.includes('updated_time')) 
                     {
-                        siteInfo.time = prop.getAttribute('content').split('T')[0]
+                        if (content)
+                        {
+                            siteInfo.time = content.split('T')[0]
+                        }
                     }
 
-                    else if (!siteInfo.title && time.includes("title"))
+                    else if (!siteInfo.title && props.includes("title"))
                     {
-                        siteInfo.title = prop.getAttribute('content')
+                        siteInfo.title = content
                     }
 
-                    else if (!siteInfo.author && time.incudes("author"))
+                    else if (!siteInfo.author && props.includes("author"))
                     {
-                        siteInfo.author = prop.getAttribute('content')
+                        siteInfo.author = content
                     }
 
-                    else if (!siteInfo.publisher && time.includes('publisher'))
+                    else if (!siteInfo.publisher && props.includes('publisher'))
                     {
-                        siteInfo.publisher = prop.getAttribute('content')
+                        siteInfo.publisher = content
                     }
-
                 }
-            )}
+            }
 
             await browser.close()
             return siteInfo
@@ -156,7 +171,7 @@ async function getCitation(link: string): Promise<WebCitation | null>
 
     catch (e: any)
     {
-        throw new Error(e)
+        throw new Error(e?.message)
     }
 }
 
@@ -165,11 +180,11 @@ function generateCitation(url: string, obj: any, citation_style: string): string
     switch (citation_style)
     {
         case CitationStyle.MLA:
-            return `${obj?.author.split(' ').reverse().join(',') ? obj.author : "Not Found"}. "${obj?.title ? obj.title : "Not Found"}." 
-                ${obj?.publisher ? obj.publisher : "Not Found"}, ${obj.time.slice(0, 4) ? obj.time : "Not Found"}, ${url}.`
+            return `${obj?.author ? obj?.author.split(' ').reverse().join(',') : "Not Found"}. "${obj?.title ? obj.title : "Not Found"}." 
+                ${obj?.publisher ? obj.publisher : "Not Found"}, ${obj?.time ? obj.time.slice(0, 4) : "Not Found"}, ${url}.`
         
         case CitationStyle.APA:
-            return `(${obj?.time.slice(0, 4) ? obj.time : "Not Found"}). ${obj?.review ? obj.review : "Not Found"}. 
+            return `(${obj?.time ? obj.time.slice(0, 4) : "Not Found"}). ${obj?.review ? obj.review : "Not Found"}. 
                 ${obj?.title ? obj.title : "Not Found"}. ${obj?.pageNumber ? obj.pageNumber : "Not Found"}. ${url}.`
 
         case CitationStyle.CHICAGO:
@@ -177,7 +192,7 @@ function generateCitation(url: string, obj: any, citation_style: string): string
                 ${obj?.publisher ? obj.publisher : "Not Found"}. ${url}.`
 
         default:
-            return `${obj?.author.split(' ').reverse().join(',') ? obj.author : "Not Found"}. "${obj?.title ? obj.title : "Not Found"}." 
-                ${obj?.publisher ? obj.publisher : "Not Found"}, ${obj.time.slice(0, 4) ? obj.time : "Not Found"}, ${url}.`
+            return `${obj?.author ? obj?.author.split(' ').reverse().join(',') : "Not Found"}. "${obj?.title ? obj.title : "Not Found"}." 
+                ${obj?.publisher ? obj.publisher : "Not Found"}, ${obj?.time ? obj.time.slice(0, 4) : "Not Found"}, ${url}.`
     }
 }

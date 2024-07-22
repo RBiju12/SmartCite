@@ -36,9 +36,9 @@ export async function GET(req: NextRequest): Promise<any>
             throw new Error("Invalid url")
         }
     }
-    catch (err: any)
+    catch (e: any)
     {
-        throw new Error(err)
+        throw new Error(e?.message)
     }
 
 }
