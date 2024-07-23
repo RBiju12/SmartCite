@@ -1,27 +1,33 @@
-import React from 'react'
 import Link from 'next/link'
 
-export default function Navbar()
+type Props = {
+  username: string | null
+}
+
+export default async function Navbar({username}: Props) 
 {
   return (
-    <div>
+    <ul>
       <li> 
-        <Link href="/">
-          Smart Cite
-        </Link>
-      </li>
+      <Link href="/">
+        Smart Cite
+      </Link>
+    </li>
 
-      <li>
-        <Link href="/pages/generator">
-          Generator
-        </Link>
-      </li>
+    <li>
+      <Link href="/pages/generator">
+        Generator
+      </Link>
+    </li>
 
-      <li>
-        <Link href="/user/dashboard">
-          Dashboard
-        </Link>
-      </li>
-    </div>
+    {username && 
+    <li>
+      <Link href={`/pages/${username}/dashboard`}>
+        My Dashboard
+      </Link>
+    </li>    
+    }
+    </ul>
+      
   )
 }

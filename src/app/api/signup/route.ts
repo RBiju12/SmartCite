@@ -1,26 +1,14 @@
-import { NextApiRequest, NextApiResponse} from "next";
+import { NextRequest, NextResponse} from "next/server";
 import {MongoClient} from 'mongodb'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken' 
 
-interface UserInfo extends NextApiRequest {
-    body: {
-        id: number,
-        username: string,
-        email: string,
-        password: string
-    }
-}
 
-
-export default async function POST(req: UserInfo, res: NextApiResponse): Promise<any>
+export async function POST(req: NextRequest): Promise<any>
 {
-    if (req.body && Object.entries(req.body).length === 4)
-    {
-        const {id, username, email, password} = req.body
-        const mongoID: any = process.env.MONGO_URI
-
-        const client = new MongoClient(mongoID)
+        const {username, email, password} = await req.json()
+        const mongoID: any = process.env.MONGO_URI as string
+        const client = new MongoClient(mongoID) 
 
         try
         {
@@ -32,49 +20,59 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
 
             const db = client.db(dbName)
             const collection = db.collection(dbCollectionName)
-            const hashedPass: string | void = bcrypt.hash(password, saltRounds, (err, hash) => {
-                if (err)
-                {
-                    return "Unhashable data"
-                }
 
-                else
-                {
-                    return hash
-                }
-            })
-
-            const result = collection.find({password: hashedPass})
+            const result = await collection.findOne({username: username})
             if (result)
             {
-                return res.status(400).json({
+                return NextResponse.json({
                     message: 'User already Exists'
-                })
+                }, {status: 400})
             }
 
             else
             {
-                collection.insertOne({id: id, username: username, email: email, password: hashedPass})
-                let secretKey: any = process.env.SECRET_KEY
+                const generateHash: any = await new Promise((resolve, reject) => {
+                    bcrypt.hash(password, saltRounds, (err, hash) => {
+                        if (err)
+                        {
+                            reject(err)
+                        }
+
+                        resolve(hash)
+                    })
+                })
+
+                const hashedPass = await generateHash
+
+                const information = {
+                    username : username,
+                    data: {
+                        email: email,
+                        password: hashedPass
+                    }
+                }
+                await collection.insertOne(information)
+                const secretKey: any = process.env.SECRET_KEY
 
                 const jwtExpirationTime = process.env.JWT_EXPIRATION
 
-                const token = jwt.sign({time: Date(), id: id}, secretKey, {
+                const accessToken = jwt.sign({time: Date(), username: username}, secretKey, {
                     expiresIn: jwtExpirationTime
                 }) 
 
-                res.setHeader('SET-Cookie', `accessToken=${token}; HttpOnly; Secure; SameSite=Strict`)
+                NextResponse.next().headers.set('Set-Cookie', `cookieToken=${accessToken}; Path=/; HttpOnly`)
 
-                return res.status(200).json({
-                    message: "User was successfully created",
-                })
+                return NextResponse.json({
+                    message: "Success",
+                    username: username
+                }, {status: 200})
             }
 
         }
 
         catch (e: any)
         {
-            return res.status(500).json({data: 'Something went Wrong!'})
+            throw new Error(e?.message)
         }
 
         finally
@@ -82,12 +80,5 @@ export default async function POST(req: UserInfo, res: NextApiResponse): Promise
             await client.close()
         }
 
-    }
-    else
-    {
-        return res.status(400).json({
-            message: 'Bad Request Sent'
-        })
-    }
 }
     

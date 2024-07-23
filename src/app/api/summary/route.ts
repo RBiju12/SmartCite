@@ -1,48 +1,75 @@
-import { NextApiRequest, NextApiResponse} from "next";
-import {pipeline} from '@xenova/transformers'
+import {NextRequest, NextResponse} from "next/server";
+import {HfInference} from '@huggingface/inference'
+import {chromium} from 'playwright'
 
-
-interface NextRequest extends NextApiRequest {
-    body: {
-        data: {
-            text: string
-        }
-        words_limit: number
-    }
-}
-
-export async function GET(req: NextRequest, res: NextApiResponse): Promise<any>
+export async function GET(req: NextRequest): Promise<any>
 {
     try
     {
-        if (Object.keys(req.body).length > 0 && Object.keys(req.body).length === 2) 
+        const {searchParams} = new URL(req?.url)
+        const url = searchParams.get('url')
+        const hfToken = process.env.HF_TOKEN as string
+        
+        const hf = new HfInference(hfToken)
+
+        const maxTokens = 600
+
+        if (url)
         {
-            const {data, words_limit} = req.body
-
-            if (data && words_limit)
+            try
             {
-                const generator = await pipeline('summarization', 'Xenova/distilbart-cnn-6-6')
-                const output: any = await generator(data?.text, {
-                max_new_tokens: words_limit
-            })
+                const browser = await chromium.launch()
+                const page: any = await browser.newPage()
+                await page.goto(url)
 
-                return res.status(200).json({text: output?.summary_text})
+                let paragraphs: string[] = await page.locator('p').allInnerTexts();
+
+                const body = paragraphs.join('.')
+
+                await browser.close();
+
+                if (body.length > 3000)
+                {
+                    const output = await hf.summarization({
+                        model: 'facebook/bart-large-cnn',
+                        inputs: body.slice(0, 3000),
+                        parameters: {
+                            max_length: maxTokens
+                        }
+                    })
+
+                    return NextResponse.json({text: output?.summary_text}, {status: 200})
+
+                }
+                else
+                {
+                    const output = await hf.summarization({
+                        model: 'facebook/bart-large-cnn',
+                        inputs: body,
+                        parameters: {
+                            max_length: maxTokens
+                        }
+                    })
+
+                    return NextResponse.json({text: output?.summary_text}, {status: 200})
+
+                }
+
             }
-
-            else
+            catch(err: any)
             {
-               return res.status(400).json({text: 'Invalid input'})
+                throw new Error(err?.message)
             }
-
         }
+
         else
-        {
-            return res.status(400).json({text: 'Invalid arguments'})
+        {    
+            return NextResponse.json({text: 'Invalid input'}, {status: 400})
         }
     }
     catch(err: any) 
     {
-        throw new Error(err)
+        throw new Error(err?.message)
     }
 
 }

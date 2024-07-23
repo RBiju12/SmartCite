@@ -1,8 +1,8 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import {NextRequest, NextResponse} from "next/server";
 import {getJson} from 'serpapi'
 
 
-export async function GET(req: NextApiRequest, res: NextApiResponse): Promise<any>
+export async function GET(req: NextRequest): Promise<any>
 {
     try
     {
@@ -12,7 +12,7 @@ export async function GET(req: NextApiRequest, res: NextApiResponse): Promise<an
 
             const topic = url.searchParams.get('topic')
 
-            const apiKey = process.env.SERP_KEY
+            const apiKey = process.env.SERP_KEY as string
 
             if (topic)
             {
@@ -21,14 +21,14 @@ export async function GET(req: NextApiRequest, res: NextApiResponse): Promise<an
                     q: topic,
                     api_key: apiKey
                 }, (json) => json.organic_results)
-
-                let links: string[] = searchQuery.map((resource: any) => resource.link).slice(0, 5)
-
-                res.status(200).json({"links": links}) 
+                let links: any = await searchQuery
+                let results: any = await links.organic_results.map((sources: any) => sources.link).slice(0, 5)
+                
+                return NextResponse.json({'links': results}, {status: 200}) 
             }
             else
             {
-                res.status(400).json({"error": 'Invalid Topic'})
+                return NextResponse.json({"error": 'Invalid Topic'}, {status: 400})
             }
         }
         else
@@ -36,9 +36,9 @@ export async function GET(req: NextApiRequest, res: NextApiResponse): Promise<an
             throw new Error("Invalid url")
         }
     }
-    catch (err: any)
+    catch (e: any)
     {
-        throw new Error(err)
+        throw new Error(e?.message)
     }
 
 }
