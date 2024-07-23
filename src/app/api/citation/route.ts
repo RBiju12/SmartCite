@@ -30,14 +30,14 @@ export async function GET(req: NextRequest): Promise<any>
             const data: any = await getCitation(link)
             return NextResponse.json({
                 citation: `(${generateCitation(link, data, citation_style)})`
-            })
+            }, {status: 200})
                 
         }
         else
         {
             return NextResponse.json({
                 citation: 'Error could not parse following cite'
-            })
+            }, {status: 400})
         }
 
     }

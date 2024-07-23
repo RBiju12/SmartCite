@@ -33,7 +33,7 @@ export async function GET(req: NextRequest): Promise<any>
 
                 if (handleQuery === null)
                 {
-                    return NextResponse.json({message: 'No account associated, please signup'})
+                    return NextResponse.json({message: 'No account associated, please signup'}, {status: 401})
                 }
 
                 const jwtRefreshToken: any = process.env.JWT_REFRESHKEY
@@ -68,13 +68,13 @@ export async function GET(req: NextRequest): Promise<any>
                         return NextResponse.json({
                             message: 'Authorized',
                             username: username
-                        })
+                        }, {status: 200})
                     }
                     else
                     {
                         return NextResponse.json({
                             message: 'Not Authorized'
-                        })
+                        }, {status: 401})
                     }
 
                 }
@@ -101,7 +101,7 @@ export async function GET(req: NextRequest): Promise<any>
         {
             return NextResponse.json({
                 message: 'Not Valid Credentials'
-            })
+            }, {status: 401})
         }   
         
         

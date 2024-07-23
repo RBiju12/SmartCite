@@ -26,7 +26,7 @@ export async function POST(req: NextRequest): Promise<any>
             {
                 return NextResponse.json({
                     message: 'User already Exists'
-                })
+                }, {status: 400})
             }
 
             else
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest): Promise<any>
                 return NextResponse.json({
                     message: "Success",
                     username: username
-                })
+                }, {status: 200})
             }
 
         }
