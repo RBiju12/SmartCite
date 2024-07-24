@@ -36,7 +36,7 @@ const Form = ({title}: Props) => {
             const authToken: any = process.env.SECRET_KEY
 
             const headers: {Authorization: string} = {
-              'Authorization': `${authToken}`
+              Authorization: `${authToken}`
             }
             
             const res = await axios.post(`http://localhost:3000/api/${title}`, {
@@ -44,10 +44,10 @@ const Form = ({title}: Props) => {
               data
             })
 
-            if (res?.data?.message === 'success')
+            if (res?.status === 200)
             {
                cookies().set('username', res?.data?.username)
-               return 'Success ...'
+               return res?.data?.message
             }
             else
             {
@@ -58,7 +58,7 @@ const Form = ({title}: Props) => {
 
          catch (e: any)
          {
-           throw new Error(e)
+           throw new Error(e?.message)
          }
       }
 
@@ -71,23 +71,22 @@ const Form = ({title}: Props) => {
             password: formData.get('password')
           }
 
-          const res = await axios.put(`http://localhost:3000/api/${title}`, {
-            data
-          })
+          const query = `?username=${data.username}&password=${data.password}`
+          const res = await axios.get(`http://localhost:3000/api/${title}` + query)
 
-          if (res.data.message === 'Authorized')
+          if (res?.status === 200)
           {
-            cookies().set('username', res.data.username)
+            cookies().set('username', res?.data?.username)
             return "Authorized"
           }
           else
           {
-            return "No valid account present"
+            return "Not Authorized"
           }
         }
         catch (e: any)
         {
-          throw new Error(e)
+          throw new Error(e?.message)
         }
 
       }
@@ -96,9 +95,9 @@ const Form = ({title}: Props) => {
 
   return (
     <>
-    <head>
-      <title className='flex items-center justify-center'>{title}</title>
-    </head>
+      <div>
+        <title className='flex items-center justify-center'>{title}</title>
+      </div>
 
       <main>
         <form action={authenticate}>
