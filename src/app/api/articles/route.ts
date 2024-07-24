@@ -24,16 +24,16 @@ export async function GET(req: NextRequest): Promise<any>
                 let links: any = await searchQuery
                 let results: any = await links.organic_results.map((sources: any) => sources.link).slice(0, 5)
                 
-                return NextResponse.json({'links': results}, {status: 200}) 
+                return NextResponse.json({links: results}, {status: 200}) 
             }
             else
             {
-                return NextResponse.json({"error": 'Invalid Topic'}, {status: 400})
+                return NextResponse.json({text: 'Invalid Topic'}, {status: 400})
             }
         }
         else
         {
-            throw new Error("Invalid url")
+            return NextResponse.json({text: 'Invalid Topic'}, {status: 400})
         }
     }
     catch (e: any)

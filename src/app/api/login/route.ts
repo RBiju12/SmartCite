@@ -80,7 +80,7 @@ export async function GET(req: NextRequest): Promise<any>
                 }
                 else
                 {
-                    throw new Error('Password cannot be empty')
+                    return NextResponse.json({text: 'Hashed Password not present'}, {status: 400})
                 }
 
             }
