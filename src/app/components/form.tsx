@@ -1,7 +1,9 @@
+'use client'
 import React from 'react'
-import axios from 'axios'
-import {cookies} from 'next/headers'
 import GoogleAuth from './GoogleAuth'
+import axios from 'axios'
+import Cookies from 'js-cookie'
+import { SessionProvider } from 'next-auth/react'
 
 type Props = {
   title: string
@@ -18,11 +20,12 @@ interface LoginInfo {
     password: FormDataEntryValue | null
 }
 
+
+
 const Form = ({title}: Props) => {
+
   async function authenticate(formData: FormData)
   {
-      'use server'
-
       if (title === 'signup')
       {
          try
@@ -46,7 +49,7 @@ const Form = ({title}: Props) => {
 
             if (res?.status === 200)
             {
-               cookies().set('username', res?.data?.username)
+               Cookies.set('username', res?.data?.username, {secure: true})
                return res?.data?.message
             }
             else
@@ -76,7 +79,7 @@ const Form = ({title}: Props) => {
 
           if (res?.status === 200)
           {
-            cookies().set('username', res?.data?.username)
+            Cookies.set('username', res?.data?.username, {secure: true})
             return "Authorized"
           }
           else
@@ -95,6 +98,7 @@ const Form = ({title}: Props) => {
 
   return (
     <>
+    <SessionProvider>
       <div>
         <title className='flex items-center justify-center'>{title}</title>
       </div>
@@ -123,6 +127,7 @@ const Form = ({title}: Props) => {
 
       <GoogleAuth />
       </main>
+      </SessionProvider>
     </>
   )
 }

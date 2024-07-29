@@ -1,11 +1,11 @@
 import React from 'react'
+import Form from '../../components/Form'
 
-const page = () => {
+export default function Page(){
   return (
     <div>
-      
+      <Form title='login'/>
     </div>
   )
 }
 
-export default page
