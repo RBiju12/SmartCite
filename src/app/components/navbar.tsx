@@ -28,7 +28,7 @@ export default function Navbar({username}: Props)
         home: true,
         generator: false,
         dashboard: false
-      })} style={{color: pressed?.home ? 'purple' : 'black'}}>
+      })} style={{color: pressed?.home ? '#E238EC' : 'white'}}>
          Home
       </a>
       </Link>
@@ -40,7 +40,7 @@ export default function Navbar({username}: Props)
         home: false,
         generator: true,
         dashboard: false
-      })} style={{color: pressed?.generator ? 'purple' : 'black'}}>
+      })} style={{color: pressed?.generator ? '#E238EC' : 'white'}}>
         Generator
       </a>
       </Link>
@@ -53,7 +53,7 @@ export default function Navbar({username}: Props)
         home: false,
         generator: false,
         dashboard: true
-      })} style={{color: pressed?.dashboard ? 'purple' : 'black'}}>  
+      })} style={{color: pressed?.dashboard ? '#E238EC' : 'white'}}>  
         My Dashboard
       </a>
       </Link>

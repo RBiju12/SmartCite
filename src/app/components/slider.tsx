@@ -24,10 +24,10 @@ export default function Slider()
   }, [])
 
   return (
-      <>
-        <Squash toggled={toggle} toggle={setToggle} />
+      <div className='absolute top-0 right-20 bg-black'>
+        <Squash toggled={toggle} toggle={setToggle} color='white' />
         {toggle ? <Navbar username={username ? username : null}/> : null}
-      </>
+      </div>
   )
 }
 
