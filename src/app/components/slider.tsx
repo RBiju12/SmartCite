@@ -12,7 +12,7 @@ export default function Slider()
   
 
   return (
-      <div className='absolute top-0 right-20 bg-black'>
+      <div className='absolute top-0 right-10'>
         <Squash toggled={toggle} toggle={setToggle} color='white' />
         {toggle ? <Navbar username={cookieData ? cookieData : null}/> : null}
       </div>

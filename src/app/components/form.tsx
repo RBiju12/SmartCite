@@ -97,23 +97,24 @@ const Form = ({title}: Props) => {
   }
 
   return (
-    <>
+    <div className='h-screen flex justify-center bg-black'>
     <SessionProvider>
-      <div>
-        <title className='flex items-center justify-center'>{title}</title>
-      </div>
+      <main className='my-40'>
+        <h1 style={{color: 'white', textAlign: 'center',fontSize: 25}}>{title.split('i')[0].toUpperCase() + title.slice(1, title.length)}</h1>
+        <br />
+        <br />
+        <br />
+        <form action={authenticate} className='flex items-center align-items'>
 
-      <main>
-        <form action={authenticate}>
         {title === 'signup' ? 
-        <div className='flex flex-col space-y-6'>
+        <div className='flex flex-col justify-center items-center space-y-6'>
           <input id="username" type='text' placeholder='Enter username' required />
 
           <input id="email" type='text' placeholder='Enter email address' required />
 
           <input id="password" type='text' placeholder='Enter password' required />
 
-          <button type='submit'>Submit</button> 
+          <button type='submit' style={{width: 100}} className='bg-purple-500'>Submit</button> 
         </div>
         :
         <div className='flex flex-col space-y-6'>
@@ -121,14 +122,15 @@ const Form = ({title}: Props) => {
 
           <input id="password" type='text' placeholder='Enter password' required />
 
-          <button type='submit'>Submit</button> 
+          <button type='submit' style={{width: 100}} className='bg-purple-500'>Submit</button> 
         </div>}      
         </form>
-
-      <GoogleAuth />
+      <div className='absolute bottom-40'>
+        <GoogleAuth />
+      </div>
       </main>
       </SessionProvider>
-    </>
+    </div>
   )
 }
 

@@ -5,6 +5,9 @@ import {useRouter} from 'next/navigation'
 import useCookies from './hooks/useCookies'
 import ReactiveButton from 'reactive-button'
 import {useState} from 'react'
+import Image from 'next/image'
+import logo from '../app/assets/logo.png'
+import { log } from 'console'
 
 export default function Home() {
   const isLoggedIn: string | null = useCookies()
@@ -30,12 +33,13 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24 bg-black">
-      <div className="flex flex-col space-y-40 items-center justify-between font-mono text-sm lg:">
+      <Image src={logo} alt='Logo'/>
+      <div className="flex flex-col space-y-20 items-center justify-between font-mono text-sm lg:">
         <h1 className='flex items-center justify-center' style={{color: 'white', fontSize: 20}}>Welcome to SmartCite</h1>
         <TypeAnimation sequence={['"Summarize and Cite in Seconds"', 3000, '"We are the future of Automation"', 3000, '"Your Research, Simplified and Automated"', 3000]} wrapper='h2' style={{color: 'white', fontSize: 20}} repeat={Infinity} />
       </div>
       {isLoggedIn === null &&
-        <div className='relative bottom-30 flex items-center justify-between flex-row space-x-80'>
+        <div className='relative bottom-50 flex flex-col space-y-20 items-center justify-between'>
           <ReactiveButton rounded idleText='SignUp' loadingText='Loading' successText='Done' size='large' buttonState={isOpened} onClick={() => setIsOpened('loading')}/>
           {isOpened === 'loading' && handleOpen('signup')}
           <ReactiveButton rounded idleText='Login' loadingText='Loading' successText='Done' size='large' buttonState={isPressed} onClick={() => setIsPressed('loading')}/>
