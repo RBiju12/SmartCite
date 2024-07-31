@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import GoogleAuth from './GoogleAuth'
-import axios from 'axios'
+import {useState} from 'react'
 import Cookies from 'js-cookie'
 import { SessionProvider } from 'next-auth/react'
 
@@ -15,18 +15,16 @@ interface FormInfo {
   password: FormDataEntryValue | null;
 }
 
-interface LoginInfo {
-    username: FormDataEntryValue | null, 
-    password: FormDataEntryValue | null
-}
-
-
 
 const Form = ({title}: Props) => {
+
+  const [message, setMessage] = useState<string>('')
+  let data2;
 
   async function authenticate(e: any)
   {
       const formData: any = new FormData(e?.target)
+      
 
       if (title === 'signup')
       {
@@ -63,11 +61,12 @@ const Form = ({title}: Props) => {
             if (result?.status === 200)
             {
                Cookies.set('username', result?.username, {secure: true})
-               return res?.data?.message
+               setMessage(result?.message)
+               data2 = await res.json() 
             }
             else
             {
-              return "Error Signing Up"
+              setMessage(result?.message)
             }
 
          }
@@ -78,7 +77,7 @@ const Form = ({title}: Props) => {
          }
       }
 
-      else
+      if (title === 'login')
       {
         try
         {
@@ -88,22 +87,23 @@ const Form = ({title}: Props) => {
             }
 
             const encodedPass = encodeURIComponent(formData.get('password') as string)
-            const query = `?username=${formData.get('username')}&password=${encodedPass}}`
+            const query = `?username=${formData.get('username')}&password=${encodedPass}`
 
             const res = await fetch(`http://localhost:3000/api/${title}` + query, {
               method: 'GET',
-            })
+              next: {revalidate: 10}
+            }).then((response) => response.json()).catch((err) => {throw new Error(err?.message)})
 
-            const response = await res.json()
-
-            if (response?.status === 200)
+            if (res.ok)
             {
-              Cookies.set('username', response?.data?.username, {secure: true})
-              return "Authorized"
+              Cookies.set('username', res?.username, {secure: true})
+              setMessage(res?.message)
+              return;
             }
             else
             {
-              return "Not Authorized"
+              setMessage('Error')
+              return;
             }
 
           }
@@ -116,11 +116,14 @@ const Form = ({title}: Props) => {
 
   }
 
+
+  
+
   return (
     <div className='h-screen flex justify-center bg-black'>
     <SessionProvider>
       <main className='my-40'>
-        <h1 style={{color: 'white', textAlign: 'center',fontSize: 25}}>{title.split('i')[0].toUpperCase() + title.slice(1, title.length)}</h1>
+        <h1 style={{color: 'white', textAlign: 'center',fontSize: 25}}>{title[0].toUpperCase() + title.slice(1, title.length)}</h1>
         <br />
         <br />
         <br />
@@ -137,13 +140,14 @@ const Form = ({title}: Props) => {
           <button type='submit' style={{width: 100}} className='bg-purple-500'>Submit</button> 
         </div>
         :
-        <div className='flex flex-col space-y-6'>
+        <div className='flex flex-col justify-center items-center space-y-6'>
           <input name="username" type='text' placeholder='Enter username' required />
 
           <input name="password" type='text' placeholder='Enter password' required />
 
           <button type='submit' style={{width: 100}} className='bg-purple-500'>Submit</button> 
-        </div>}      
+        </div>}  
+        <h1 style={{color: 'white'}}>{message}</h1>    
         </form>
       <div className='absolute bottom-40'>
         <GoogleAuth />
