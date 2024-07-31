@@ -16,6 +16,7 @@ export async function GET(req: NextRequest): Promise<any>
         const client = new MongoClient(mongoID)
 
 
+
         if (username && password)
         {
             try
@@ -44,12 +45,13 @@ export async function GET(req: NextRequest): Promise<any>
                 })
 
                 const hashedPass = handleQuery?.data?.password
+                console.log(decodeURIComponent(password))
 
                 if (hashedPass)
                 {
 
                     const result: any = new Promise((resolve, reject) => {
-                        bcrypt.compare(password, hashedPass, async(err, result) => {
+                        bcrypt.compare(decodeURIComponent(password), hashedPass, async(err, result) => {
                             if (err)
                             {
                                 reject(err)
@@ -60,6 +62,9 @@ export async function GET(req: NextRequest): Promise<any>
                     })
 
                     const getResult = await result
+
+                    console.log(getResult)
+
                 
 
                     if (getResult)

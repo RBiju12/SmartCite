@@ -24,32 +24,45 @@ interface LoginInfo {
 
 const Form = ({title}: Props) => {
 
-  async function authenticate(formData: FormData)
+  async function authenticate(e: any)
   {
+      const formData: any = new FormData(e?.target)
+
       if (title === 'signup')
       {
+
          try
          {
-            const data: FormInfo = {
-               username: formData.get('username'),
-               email: formData.get('email'),
-               password: formData.get('password')
+
+            if (!formData)
+            {
+              throw new Error("Fields need to be present")
             }
 
-            const authToken: any = process.env.SECRET_KEY
+            const data: FormInfo = {
+              username: formData.get('username') as string,
+              password: encodeURIComponent(formData.get('password') as string),
+              email: formData.get('email') as string
+            }
+
+            const authToken = process.env.SECRET_KEY as string
 
             const headers: {Authorization: string} = {
               Authorization: `${authToken}`
             }
+
             
-            const res = await axios.post(`http://localhost:3000/api/${title}`, {
-              headers,
-              data
+            const res: any = await fetch(`http://localhost:3000/api/${title}`, {
+              method: 'POST',
+              headers: headers,
+              body: JSON.stringify(data)
             })
 
-            if (res?.status === 200)
+            const result = await res.json()
+
+            if (result?.status === 200)
             {
-               Cookies.set('username', res?.data?.username, {secure: true})
+               Cookies.set('username', result?.username, {secure: true})
                return res?.data?.message
             }
             else
@@ -69,28 +82,35 @@ const Form = ({title}: Props) => {
       {
         try
         {
-          const data: LoginInfo = {
-            username: formData.get('username'),
-            password: formData.get('password')
-          }
+            if (!formData || !formData.get('username') || !formData.get('password'))
+            {
+               throw new Error("Fields need to be present")
+            }
 
-          const query = `?username=${data.username}&password=${data.password}`
-          const res = await axios.get(`http://localhost:3000/api/${title}` + query)
+            const encodedPass = encodeURIComponent(formData.get('password') as string)
+            const query = `?username=${formData.get('username')}&password=${encodedPass}}`
 
-          if (res?.status === 200)
-          {
-            Cookies.set('username', res?.data?.username, {secure: true})
-            return "Authorized"
+            const res = await fetch(`http://localhost:3000/api/${title}` + query, {
+              method: 'GET',
+            })
+
+            const response = await res.json()
+
+            if (response?.status === 200)
+            {
+              Cookies.set('username', response?.data?.username, {secure: true})
+              return "Authorized"
+            }
+            else
+            {
+              return "Not Authorized"
+            }
+
           }
-          else
+          catch (e: any)
           {
-            return "Not Authorized"
+            throw new Error(e?.message)
           }
-        }
-        catch (e: any)
-        {
-          throw new Error(e?.message)
-        }
 
       }
 
@@ -104,23 +124,23 @@ const Form = ({title}: Props) => {
         <br />
         <br />
         <br />
-        <form action={authenticate} className='flex items-center align-items'>
+        <form onSubmit={(e) => authenticate(e)} className='flex items-center align-items'>
 
         {title === 'signup' ? 
         <div className='flex flex-col justify-center items-center space-y-6'>
-          <input id="username" type='text' placeholder='Enter username' required />
+          <input name="username" type='text' placeholder='Enter username' required />
 
-          <input id="email" type='text' placeholder='Enter email address' required />
+          <input name="email" type='text' placeholder='Enter email address' required />
 
-          <input id="password" type='text' placeholder='Enter password' required />
+          <input name="password" type='text' placeholder='Enter password' required />
 
           <button type='submit' style={{width: 100}} className='bg-purple-500'>Submit</button> 
         </div>
         :
         <div className='flex flex-col space-y-6'>
-          <input id="username" type='text' placeholder='Enter username' required />
+          <input name="username" type='text' placeholder='Enter username' required />
 
-          <input id="password" type='text' placeholder='Enter password' required />
+          <input name="password" type='text' placeholder='Enter password' required />
 
           <button type='submit' style={{width: 100}} className='bg-purple-500'>Submit</button> 
         </div>}      
