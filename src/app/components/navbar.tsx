@@ -1,33 +1,65 @@
 import Link from 'next/link'
+import { useState } from 'react'
 
 type Props = {
   username: string | null
 }
 
-export default async function Navbar({username}: Props) 
-{
-  return (
-    <ul>
-      <li> 
-      <Link href="/">
-        Smart Cite
-      </Link>
-    </li>
+interface Navigation {
+  home: boolean,
+  generator: boolean,
+  dashboard: boolean
+}
 
-    <li>
-      <Link href="/pages/generator">
-        Generator
+export default function Navbar({username}: Props) 
+{
+  const [pressed, setPressed] = useState<Navigation>({
+    home: false,
+    generator: false,
+    dashboard: false
+  })
+
+  return (
+    <div className='flex flex-col space-y-10'>
+    <ul>
+      <div> 
+      <Link href="/" legacyBehavior>
+      <a onClick={() => setPressed({
+        home: true,
+        generator: false,
+        dashboard: false
+      })} style={{color: pressed?.home ? '#E238EC' : 'white'}}>
+         Home
+      </a>
       </Link>
-    </li>
+    </div>
+ 
+    <div>
+      <Link href="/pages/generator" legacyBehavior>
+      <a onClick={() => setPressed({
+        home: false,
+        generator: true,
+        dashboard: false
+      })} style={{color: pressed?.generator ? '#E238EC' : 'white'}}>
+        Generator
+      </a>
+      </Link>
+    </div>
 
     {username && 
-    <li>
-      <Link href={`/pages/${username}/dashboard`}>
+    <div>
+      <Link href={`/pages/${username}/dashboard`} legacyBehavior>
+      <a onClick={() => setPressed({
+        home: false,
+        generator: false,
+        dashboard: true
+      })} style={{color: pressed?.dashboard ? '#E238EC' : 'white'}}>  
         My Dashboard
+      </a>
       </Link>
-    </li>    
+    </div>    
     }
     </ul>
-      
+    </div>
   )
 }

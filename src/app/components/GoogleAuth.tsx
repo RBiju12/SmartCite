@@ -1,9 +1,10 @@
 'use client'
 
+import { Suspense } from 'react'
 import GoogleButton from 'react-google-button'
 import { useSession } from 'next-auth/react'
 import {signIn} from 'next-auth/react'
-import {cookies} from 'next/headers'
+import Cookies from 'js-cookie'
 
 export default function GoogleAuth()
 {
@@ -11,13 +12,13 @@ export default function GoogleAuth()
 
     if (status === 'loading')
     {
-        return <h1>...Loading</h1>
+        return <Suspense fallback={<h1>Loading...</h1>}/>
     }
 
     const isVerified = (email: string) => {
         const uniqueKey = email.split('@')[1].split('.')[0]
         const valid_emails  = [`${uniqueKey}.com`]
-        return valid_emails.includes(uniqueKey) && status === 'authenticated'
+        return email.includes(valid_emails[0]) && status === 'authenticated'
     }
 
     const handleSignIn = async(): Promise<void> => {
@@ -26,8 +27,8 @@ export default function GoogleAuth()
 
     if (session && isVerified(session?.user?.email as string))
     {
-        cookies().set('username', session?.user?.email as string)
-    }
+        Cookies.set('username', session?.user?.email as string, {secure: true})
+    } 
 
     return(
         <main>

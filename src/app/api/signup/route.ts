@@ -6,7 +6,8 @@ import jwt from 'jsonwebtoken'
 
 export async function POST(req: NextRequest): Promise<any>
 {
-        const {username, email, password} = await req.json()
+        const formData: any = await req.json()
+        const {username, email, password} = formData
         const mongoID: any = process.env.MONGO_URI as string
         const client = new MongoClient(mongoID) 
 
@@ -26,13 +27,13 @@ export async function POST(req: NextRequest): Promise<any>
             {
                 return NextResponse.json({
                     message: 'User already Exists'
-                }, {status: 400})
+                }, {status: 200})
             }
 
             else
             {
                 const generateHash: any = await new Promise((resolve, reject) => {
-                    bcrypt.hash(password, saltRounds, (err, hash) => {
+                    bcrypt.hash(decodeURIComponent(password), saltRounds, (err, hash) => {
                         if (err)
                         {
                             reject(err)

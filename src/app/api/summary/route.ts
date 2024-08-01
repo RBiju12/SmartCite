@@ -12,7 +12,7 @@ export async function GET(req: NextRequest): Promise<any>
         
         const hf = new HfInference(hfToken)
 
-        const maxTokens = 600
+        const maxTokens = 4000
 
         if (url)
         {
@@ -20,7 +20,10 @@ export async function GET(req: NextRequest): Promise<any>
             {
                 const browser = await chromium.launch()
                 const page: any = await browser.newPage()
+                const timeLimit = 30000
+
                 await page.goto(url)
+                await page.waitForLoadState('load', {timeout: timeLimit})
 
                 let paragraphs: string[] = await page.locator('p').allInnerTexts();
 
@@ -28,11 +31,11 @@ export async function GET(req: NextRequest): Promise<any>
 
                 await browser.close();
 
-                if (body.length > 3000)
+                if (body.length > 5000)
                 {
                     const output = await hf.summarization({
                         model: 'facebook/bart-large-cnn',
-                        inputs: body.slice(0, 3000),
+                        inputs: body.slice(0, 4300),
                         parameters: {
                             max_length: maxTokens
                         }
@@ -58,7 +61,7 @@ export async function GET(req: NextRequest): Promise<any>
             }
             catch(err: any)
             {
-                throw new Error(err?.message)
+                return NextResponse.json({text: 'Url Could not be parsed'}, {status: 400})
             }
         }
 
@@ -69,7 +72,7 @@ export async function GET(req: NextRequest): Promise<any>
     }
     catch(err: any) 
     {
-        throw new Error(err?.message)
+        return NextResponse.json({text: 'Invalid Url'}, {status: 400})
     }
 
 }
