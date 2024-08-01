@@ -33,7 +33,7 @@ export default function middleware(request: NextRequest, response: NextResponse)
 
     return NextResponse.next()
 
-    }
+}
 
 export const config = {
     matcher: '/api/:path*'

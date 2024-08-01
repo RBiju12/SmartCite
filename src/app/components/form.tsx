@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import { useRouter } from 'next/navigation'
 import GoogleAuth from './GoogleAuth'
 import {useState} from 'react'
 import Cookies from 'js-cookie'
@@ -16,14 +16,18 @@ interface FormInfo {
 }
 
 
+
 const Form = ({title}: Props) => {
 
   const [message, setMessage] = useState<string>('')
-  let data2;
+  const [datas, setDatas] = useState<string>('')
 
-  async function authenticate(e: any)
+  const router = useRouter()
+
+  async function authenticate(e: React.FormEvent<HTMLFormElement>)
   {
-      const formData: any = new FormData(e?.target)
+      e.preventDefault()
+      const formData: any = new FormData(e?.currentTarget)
       
 
       if (title === 'signup')
@@ -45,8 +49,9 @@ const Form = ({title}: Props) => {
 
             const authToken = process.env.SECRET_KEY as string
 
-            const headers: {Authorization: string} = {
-              Authorization: `${authToken}`
+            const headers: {Authorization: string, 'Content-Type': string} = {
+              Authorization: `${authToken}`,
+              'Content-Type': 'application/json'
             }
 
             
@@ -56,17 +61,20 @@ const Form = ({title}: Props) => {
               body: JSON.stringify(data)
             })
 
+            if (!res.ok)
+            {
+               throw new Error(`HTTP Error code: ${res.status}`)
+            }
             const result = await res.json()
 
             if (result?.status === 200)
             {
                Cookies.set('username', result?.username, {secure: true})
-               setMessage(result?.message)
-               data2 = await res.json() 
+               setDatas(result?.message)
             }
             else
             {
-              setMessage(result?.message)
+              setDatas(result?.message) 
             }
 
          }
@@ -91,21 +99,26 @@ const Form = ({title}: Props) => {
 
             const res = await fetch(`http://localhost:3000/api/${title}` + query, {
               method: 'GET',
-              next: {revalidate: 10}
-            }).then((response) => response.json()).catch((err) => {throw new Error(err?.message)})
+              next: {revalidate: 10}})
 
-            if (res.ok)
+            if (!res.ok)
             {
-              Cookies.set('username', res?.username, {secure: true})
-              setMessage(res?.message)
-              return;
+                throw new Error(`HTTP Error code: ${res.status}`)
             }
+
+            const result = await res.json()
+
+            if (result?.status === 200)
+            {
+              Cookies.set('username', result?.username, {secure: true})
+              setMessage(result?.message)
+            }
+
             else
             {
-              setMessage('Error')
-              return;
+              setMessage(result?.message)
             }
-
+            
           }
           catch (e: any)
           {
@@ -116,8 +129,12 @@ const Form = ({title}: Props) => {
 
   }
 
+  function reRoute()
+  {
+     router.push('/pages/generator')
 
-  
+     return 'Success ...'
+  }
 
   return (
     <div className='h-screen flex justify-center bg-black'>
@@ -146,9 +163,13 @@ const Form = ({title}: Props) => {
           <input name="password" type='text' placeholder='Enter password' required />
 
           <button type='submit' style={{width: 100}} className='bg-purple-500'>Submit</button> 
-        </div>}  
-        <h1 style={{color: 'white'}}>{message}</h1>    
+        </div>}     
         </form>
+        <br />
+        {
+          title === 'login' ? (message === 'Authorized' ? reRoute() : <h1 className='text-center text-white'>Incorrect Login, Please Verify</h1>): 
+          (datas === 'Success' ? reRoute() : <h1 className='text-center text-white'>Incorrect Signup, Please Verify</h1>)
+        }
       <div className='absolute bottom-40'>
         <GoogleAuth />
       </div>
@@ -158,4 +179,5 @@ const Form = ({title}: Props) => {
   )
 }
 
-export default Form
+export default Form;
+

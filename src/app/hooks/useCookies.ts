@@ -15,7 +15,7 @@ export default function useCookies()
           {
              setUsername(data)
           }
-        }, 3000)
+        }, 1000)
    
         return () => clearInterval(cookie)
      }, [])

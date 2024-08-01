@@ -33,7 +33,7 @@ export async function GET(req: NextRequest): Promise<any>
 
                 if (handleQuery === null)
                 {
-                    return Response.json({message: 'No account associated, please signup'}, {status: 401})
+                    return Response.json({message: 'No account associated, please signup'}, {status: 200})
                 }
 
                 const jwtRefreshToken: any = process.env.JWT_REFRESHKEY
@@ -44,7 +44,6 @@ export async function GET(req: NextRequest): Promise<any>
                 })
 
                 const hashedPass = handleQuery?.data?.password
-                console.log(decodeURIComponent(password))
 
                 if (hashedPass)
                 {
@@ -61,11 +60,13 @@ export async function GET(req: NextRequest): Promise<any>
                     })
 
                     const getResult = await result
+
                 
                     if (getResult)
                     {
                         NextResponse.next().headers.set('Set-Cookie', `cookieToken=${refreshToken}; Path=/; HttpOnly`)
-                        return Response.json({
+
+                        return NextResponse.json({
                             message: 'Authorized',
                             username: username
                         }, {status: 200})
@@ -73,15 +74,15 @@ export async function GET(req: NextRequest): Promise<any>
                     }
                     else
                     {
-                        return Response.json({
+                        return NextResponse.json({
                             message: 'Not Authorized'
-                        }, {status: 401})
+                        }, {status: 200})
                     }
 
                 }
                 else
                 {
-                    return Response.json({message: 'Hashed Password not present'}, {status: 400})
+                    return NextResponse.json({message: 'Hashed Password not present'}, {status: 200})
                 }
 
             }
@@ -100,9 +101,9 @@ export async function GET(req: NextRequest): Promise<any>
 
         else
         {
-            return Response.json({
+            return NextResponse.json({
                 message: 'Not Valid Credentials'
-            }, {status: 401})
+            }, {status: 200})
         }   
         
         
